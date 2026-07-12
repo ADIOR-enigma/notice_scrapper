@@ -17,6 +17,7 @@ Seen notice IDs are persisted in a lightweight JSON file (`seen_notices.json`) t
   - **Retries & Exponential Backoff**: Uses `urllib3.util.retry.Retry` for automatic retries on HTTP `429`, `500`, `502`, `503`, and `504` errors.
   - **Explicit Timeouts**: Custom HTTP adapter enforces a `15-second` timeout on all requests to prevent hanging.
 - **Idempotent Persistence**: Tracks unique notice hashes in `seen_notices.json` to prevent duplicate alerts.
+- **Daily Active Status Heartbeat**: Sends a daily confirmation message (`🤖 Notice Scraper Bot Active`) when no new notices are found, so you always know the bot ran successfully.
 - **Spam Prevention**: On its very first run (when `seen_notices.json` is empty), the scraper seeds existing notices silently without blasting historical alerts.
 
 ---
@@ -111,6 +112,12 @@ python scraper.py
 By default, the first run seeds `seen_notices.json` silently. To send WhatsApp alerts for all discovered notices even on initial setup:
 ```bash
 python scraper.py --notify-all
+```
+
+#### Option D: Suppress Daily Active Status Heartbeat
+By default, when no new notices are found, the bot sends an active status confirmation message so you know it ran. To disable this message:
+```bash
+python scraper.py --no-heartbeat
 ```
 
 ---

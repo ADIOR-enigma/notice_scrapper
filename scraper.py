@@ -345,6 +345,29 @@ def format_notice_message(notice: dict) -> str:
     )
 
 
+def format_active_status_message(cuexam_count: int, scc_count: int) -> str:
+    """Format a daily status message indicating the bot is active and ran successfully."""
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    cuexam_status = (
+        f"{cuexam_count} checked"
+        if cuexam_count > 0
+        else "0 checked (check site/network)"
+    )
+    scc_status = (
+        f"{scc_count} checked"
+        if scc_count > 0
+        else "0 checked (check site/network)"
+    )
+    return (
+        "🤖 *Notice Scraper Bot Active*\n\n"
+        f"📅 *Last Run:* {date_str}\n"
+        "✅ *Notice Boards Checked:*\n"
+        f"• CUExam.net: {cuexam_status}\n"
+        f"• Scottish Church College: {scc_status}\n\n"
+        "ℹ️ *Status:* No new notices found today. Everything is up to date!"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Notice Scraper & WhatsApp Alerter")
     parser.add_argument(
@@ -356,6 +379,11 @@ def main():
         "--dry-run",
         action="store_true",
         help="Run scrapers without sending WhatsApp messages or modifying JSON state.",
+    )
+    parser.add_argument(
+        "--no-heartbeat",
+        action="store_true",
+        help="Do not send an active status message when no new notices are found.",
     )
     args = parser.parse_args()
 
@@ -377,6 +405,15 @@ def main():
 
     if not new_notices:
         logger.info("No new notices found. Everything is up to date.")
+        if not args.no_heartbeat:
+            heartbeat_msg = format_active_status_message(
+                len(cuexam_notices), len(scc_notices)
+            )
+            logger.info("Sending active status notification (no new notices)...")
+            if args.dry_run:
+                logger.info(f"[DRY-RUN] Would send active status message:\n{heartbeat_msg}")
+            else:
+                send_all_notifications(session, heartbeat_msg)
         return
 
     # 3. Handle initial seed vs alert
@@ -390,6 +427,16 @@ def main():
             for notice in new_notices:
                 seen_ids.add(notice["id"])
             save_seen_notices(SEEN_FILE, seen_ids)
+            if not args.no_heartbeat:
+                init_msg = (
+                    "🤖 *Notice Scraper Bot Initialized & Active*\n\n"
+                    f"📅 *Date:* {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n"
+                    f"✅ Seeded {len(new_notices)} existing notices into seen list.\n\n"
+                    "ℹ️ *Status:* Bot is active and running daily. Future runs will alert you of any new notices!"
+                )
+                send_all_notifications(session, init_msg)
+        else:
+            logger.info("[DRY-RUN] Would seed existing notices and send initialization status message.")
         return
 
     # 4. Notify for new notices
