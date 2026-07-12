@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Notice Scraper for CUExam.net and Scottish Church College.
+Notice Scraper for CUExam and Scottish Church College.
 Scrapes exam & college notices, stores seen IDs in seen_notices.json,
 and sends notifications for new notices via WhatsApp Cloud API.
 """
@@ -83,14 +83,14 @@ def scrape_cuexam(session: requests.Session) -> list[dict]:
     """Scrape official notices from CUExam.net (exam-notice.php)."""
     base_url = "https://cuexam.net/"
     target_url = "https://cuexam.net/exam-notice.php"
-    logger.info(f"Scraping CUExam.net notices from {target_url}...")
+    logger.info(f"Scraping CUExam notices from {target_url}...")
 
     notices = []
     try:
         response = session.get(target_url)
         response.raise_for_status()
     except Exception as e:
-        logger.error(f"Failed to fetch CUExam.net notices: {e}")
+        logger.error(f"Failed to fetch CUExam notices: {e}")
         return notices
 
     soup = BeautifulSoup(response.text, "html.parser")
@@ -120,13 +120,13 @@ def scrape_cuexam(session: requests.Session) -> list[dict]:
         notice_id = make_notice_id("cuexam", absolute_url)
         notices.append({
             "id": notice_id,
-            "source": "CUExam.net",
+            "source": "CUExam",
             "title": title,
             "date": date_text,
             "url": absolute_url,
         })
 
-    logger.info(f"Found {len(notices)} notices from CUExam.net.")
+    logger.info(f"Found {len(notices)} notices from CUExam.")
     return notices
 
 
@@ -362,7 +362,7 @@ def format_active_status_message(cuexam_count: int, scc_count: int) -> str:
         "🤖 *Notice Scraper Bot Active*\n\n"
         f"📅 *Last Run:* {date_str}\n"
         "✅ *Notice Boards Checked:*\n"
-        f"• CUExam.net: {cuexam_status}\n"
+        f"• CUExam: {cuexam_status}\n"
         f"• Scottish Church College: {scc_status}\n\n"
         "ℹ️ *Status:* No new notices found today. Everything is up to date!"
     )
