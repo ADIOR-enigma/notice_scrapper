@@ -1,6 +1,6 @@
-# Notice Scraper & WhatsApp Alert System
+# Notice Scraper & Multi-Channel Alert System
 
-An automated Python scraper and GitHub Actions workflow that checks [CUExam.net](https://cuexam.net/exam-notice.php) and [Scottish Church College](https://www.scottishchurch.ac.in/notice-board.php) every 24 hours for new notices. When new notices appear, it formats a clean alert message and delivers it directly to your phone via the **Official WhatsApp Cloud API**.
+An automated Python scraper and GitHub Actions workflow that checks [CUExam.net](https://cuexam.net/exam-notice.php) and [Scottish Church College](https://www.scottishchurch.ac.in/notice-board.php) every 24 hours for new notices. When new notices appear, it formats a clean alert message and delivers it instantly via your preferred messaging channels: **Telegram Bot**, **Discord Webhook**, and/or **Official WhatsApp Cloud API**.
 
 Seen notice IDs are persisted in a lightweight JSON file (`seen_notices.json`) that is automatically committed back to the repository by GitHub Actions.
 
@@ -12,7 +12,10 @@ Seen notice IDs are persisted in a lightweight JSON file (`seen_notices.json`) t
 - **Multi-Source Scraping**:
   - **CUExam.net** (`https://cuexam.net/exam-notice.php`)
   - **Scottish Church College** (`https://www.scottishchurch.ac.in/notice-board.php`)
-- **Official WhatsApp Cloud API**: Uses Meta's Graph API (`v21.0`) to send secure, reliable WhatsApp messages without third-party scrapers or headless browsers.
+- **Multi-Channel Notifications**:
+  - **Telegram Bot API**: Instant messages with zero SMS/business verification needed.
+  - **Discord Webhooks**: Instant alerts to any Discord server channel.
+  - **Official WhatsApp Cloud API**: Direct WhatsApp alerts via Meta's Graph API (`v21.0`).
 - **Robust Networking**:
   - **Retries & Exponential Backoff**: Uses `urllib3.util.retry.Retry` for automatic retries on HTTP `429`, `500`, `502`, `503`, and `504` errors.
   - **Explicit Timeouts**: Custom HTTP adapter enforces a `15-second` timeout on all requests to prevent hanging.
@@ -92,15 +95,23 @@ pip install -r requirements.txt
 
 ### 2. Run Scraper Locally
 
-#### Option A: Dry Run (No WhatsApp alerts or file updates)
-Great for testing scraping logic safely:
+#### Option A: Dry Run (No alerts or file updates)
+Great for testing scraping logic safely without sending notifications or modifying state:
 ```bash
 python scraper.py --dry-run
 ```
 
-#### Option B: Full Run with WhatsApp Notification
-Set your environment variables and execute:
+#### Option B: Full Run with Notifications
+Configure any combination of Telegram, Discord, or WhatsApp environment variables and execute:
 ```bash
+# Example 1: Telegram Alerts
+export TELEGRAM_BOT_TOKEN="your_bot_token"
+export TELEGRAM_CHAT_ID="your_chat_id"
+
+# Example 2: Discord Alerts
+export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
+
+# Example 3: WhatsApp Alerts
 export WHATSAPP_TOKEN="your_access_token"
 export WHATSAPP_PHONE_NUMBER_ID="your_phone_number_id"
 export WHATSAPP_RECIPIENT_PHONE_NUMBER="919876543210"
@@ -109,7 +120,7 @@ python scraper.py
 ```
 
 #### Option C: Force Alerting All Notices on Initial Seed
-By default, the first run seeds `seen_notices.json` silently. To send WhatsApp alerts for all discovered notices even on initial setup:
+By default, the first run seeds `seen_notices.json` silently. To send alerts for all discovered notices even on initial setup:
 ```bash
 python scraper.py --notify-all
 ```
@@ -129,7 +140,7 @@ notice_scrapper/
 ├── .github/
 │   └── workflows/
 │       └── scrape_notices.yml   # Daily 24h cron workflow + auto-commit
-├── scraper.py                   # Core scraper with retries, timeouts & WhatsApp API
+├── scraper.py                   # Core scraper with multi-channel alerts (Telegram, Discord, WhatsApp)
 ├── seen_notices.json            # Lightweight JSON persistence state
 ├── requirements.txt             # Python dependencies
 └── README.md                    # Project documentation

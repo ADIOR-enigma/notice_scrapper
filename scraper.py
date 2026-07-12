@@ -2,7 +2,8 @@
 """
 Notice Scraper for CUExam and Scottish Church College.
 Scrapes exam & college notices, stores seen IDs in seen_notices.json,
-and sends notifications for new notices via WhatsApp Cloud API.
+and sends notifications for new notices via multi-channel alerts
+(Telegram Bot, Discord Webhook, and/or WhatsApp Cloud API).
 """
 
 import argparse
@@ -369,16 +370,16 @@ def format_active_status_message(cuexam_count: int, scc_count: int) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Notice Scraper & WhatsApp Alerter")
+    parser = argparse.ArgumentParser(description="Notice Scraper & Multi-Channel Alerter")
     parser.add_argument(
         "--notify-all",
         action="store_true",
-        help="Send WhatsApp alerts for all discovered notices even on initial run.",
+        help="Send notification alerts for all discovered notices even on initial run.",
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run scrapers without sending WhatsApp messages or modifying JSON state.",
+        help="Run scrapers without sending notifications or modifying JSON state.",
     )
     parser.add_argument(
         "--no-heartbeat",
@@ -421,7 +422,7 @@ def main():
         logger.info(
             "Initial run detected (0 seen notices previously). Seeding all "
             f"{len(new_notices)} existing notices into {SEEN_FILE} without "
-            "sending WhatsApp alerts to prevent message spam."
+            "sending notification alerts to prevent message spam."
         )
         if not args.dry_run:
             for notice in new_notices:
