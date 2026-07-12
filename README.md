@@ -21,36 +21,41 @@ Seen notice IDs are persisted in a lightweight JSON file (`seen_notices.json`) t
 
 ---
 
-## 🔐 Setup Instructions for Secrets (WhatsApp Cloud API)
+## 🔐 Setup Instructions for Secrets (Multi-Channel Alerts)
 
-To keep your credentials secure, **no secrets are hardcoded in the codebase**. All sensitive values must be passed as environment variables.
+To keep your credentials secure, **no secrets are hardcoded in the codebase**. You can configure any combination of **WhatsApp Cloud API**, **Telegram Bot**, or **Discord Webhook** by setting environment variables or GitHub Repository Secrets.
 
-### 1. Get Official WhatsApp Cloud API Credentials
+### Option A: Telegram Bot Setup (Instant — No SMS Verification Required!)
+1. Open Telegram and message **[@BotFather](https://t.me/BotFather)**.
+2. Send `/newbot`, name your bot, and save the **HTTP API Token** (`TELEGRAM_BOT_TOKEN`).
+3. Message **[@userinfobot](https://t.me/userinfobot)** on Telegram to get your numeric **Chat ID** (`TELEGRAM_CHAT_ID`).
 
+### Option B: Discord Webhook Setup (Instant — Under 60 Seconds!)
+1. Open your Discord server → go to **Channel Settings** → **Integrations** → **Webhooks**.
+2. Click **New Webhook** → **Copy Webhook URL** (`DISCORD_WEBHOOK_URL`).
+
+### Option C: Official WhatsApp Cloud API Setup
 1. Go to the [Meta for Developers Portal](https://developers.facebook.com/) and log in.
 2. Click **My Apps** → **Create App** → select **Other** → **Business** application type.
 3. In your new App Dashboard, scroll to **WhatsApp** and click **Set up**.
 4. Navigate to **WhatsApp > API Setup** in the left menu.
-5. Note the following values:
-   - **Phone Number ID**: Your WhatsApp test or production Phone Number ID.
-   - **Access Token**: Either a temporary token (for quick testing) or a permanent System User Token generated via Business Settings.
-6. **Recipient Phone Number**: Ensure the recipient number is registered/verified in your WhatsApp API dashboard and formatted in standard **E.164 format without the `+` sign** (e.g., `919876543210`).
+5. Note your **Phone Number ID** (`WHATSAPP_PHONE_NUMBER_ID`) and **Access Token** (`WHATSAPP_TOKEN`).
+6. Note your recipient phone number (`WHATSAPP_RECIPIENT_PHONE_NUMBER`) in standard E.164 format without `+` (e.g., `919876543210`).
 
 ---
 
-### 2. Configure GitHub Repository Secrets
+### Configure GitHub Repository Secrets
 
-To enable GitHub Actions to send WhatsApp alerts:
+Open your repository on GitHub.com → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**. Add whichever notification channel(s) you wish to use:
 
-1. Open your GitHub repository on GitHub.com.
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**.
-3. Click **New repository secret** and add each of the following:
-
-| Secret Name | Description | Example Value |
+| Secret Name | Description | Required For |
 | :--- | :--- | :--- |
-| `WHATSAPP_TOKEN` | Meta API Access Token (Bearer Token) | `EAAG...` |
-| `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp Phone Number ID | `104829103948...` |
-| `WHATSAPP_RECIPIENT_PHONE_NUMBER` | Recipient phone number with country code | `919876543210` |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot API HTTP Token from BotFather | Telegram Alerts |
+| `TELEGRAM_CHAT_ID` | Your numeric Telegram Chat ID | Telegram Alerts |
+| `DISCORD_WEBHOOK_URL` | Full Discord Channel Webhook URL | Discord Alerts |
+| `WHATSAPP_TOKEN` | Meta API Access Token | WhatsApp Alerts |
+| `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp Business Phone Number ID | WhatsApp Alerts |
+| `WHATSAPP_RECIPIENT_PHONE_NUMBER` | Recipient phone number (country code + number) | WhatsApp Alerts |
 
 ---
 

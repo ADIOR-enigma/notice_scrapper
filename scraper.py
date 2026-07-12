@@ -230,6 +230,77 @@ def send_whatsapp_message(session: requests.Session, text_message: str) -> bool:
         return False
 
 
+def send_telegram_message(session: requests.Session, text_message: str) -> bool:
+    """Send a notification message via Telegram Bot API."""
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+
+    if not (token and chat_id):
+        return False
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text_message,
+        "disable_web_page_preview": False,
+    }
+
+    try:
+        logger.info(f"Sending Telegram message to chat {chat_id}...")
+        resp = session.post(url, json=payload)
+        if resp.status_code in (200, 201):
+            logger.info("Successfully sent Telegram message.")
+            return True
+        else:
+            logger.error(f"Telegram API error [{resp.status_code}]: {resp.text}")
+            return False
+    except Exception as e:
+        logger.error(f"Exception while sending Telegram message: {e}")
+        return False
+
+
+def send_discord_message(session: requests.Session, text_message: str) -> bool:
+    """Send a notification message via Discord Webhook."""
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+
+    if not webhook_url:
+        return False
+
+    payload = {"content": text_message}
+
+    try:
+        logger.info("Sending Discord Webhook notification...")
+        resp = session.post(webhook_url, json=payload)
+        if resp.status_code in (200, 204):
+            logger.info("Successfully sent Discord message.")
+            return True
+        else:
+            logger.error(f"Discord Webhook error [{resp.status_code}]: {resp.text}")
+            return False
+    except Exception as e:
+        logger.error(f"Exception while sending Discord message: {e}")
+        return False
+
+
+def send_all_notifications(session: requests.Session, text_message: str) -> int:
+    """Send notifications to all configured channels (WhatsApp, Telegram, Discord)."""
+    sent_count = 0
+    if send_whatsapp_message(session, text_message):
+        sent_count += 1
+    if send_telegram_message(session, text_message):
+        sent_count += 1
+    if send_discord_message(session, text_message):
+        sent_count += 1
+
+    if sent_count == 0:
+        logger.warning(
+            "No notification channels were triggered (ensure WHATSAPP_TOKEN, "
+            "TELEGRAM_BOT_TOKEN+TELEGRAM_CHAT_ID, or DISCORD_WEBHOOK_URL are set)."
+        )
+
+    return sent_count
+
+
 def load_seen_notices(filepath: str) -> set[str]:
     """Load seen notice IDs from JSON persistence file."""
     if not os.path.exists(filepath):
@@ -331,9 +402,7 @@ def main():
             logger.info(f"[DRY-RUN] Would send message:\n{message}")
             notified_count += 1
         else:
-            sent = send_whatsapp_message(session, message)
-            # Even if WhatsApp is unconfigured or fails, we mark as seen if desired,
-            # or we can mark as seen regardless so it won't loop.
+            send_all_notifications(session, message)
             seen_ids.add(notice["id"])
             notified_count += 1
 
